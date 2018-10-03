@@ -18,12 +18,14 @@ client.login(`${process.env.DiscordKey}`);
 client.on('ready', () => {
 
     //How the bot responds to a message being sent
-    client.on('message', message => {
+    client.on('message', async message => {
         //TODO:
-        let twistjuryChannel = client.channels.array().find(channel => channel.id === process.env.twistjuryChannelID);
-        if (message.content.includes("!twist!"))
+        let twistJuryChannel = client.channels.array().find(channel => channel.id === process.env.twistjuryChannelID);
+        //!twist calls a new twist
+        if (message.content.includes("!twist"))
         {
-            message.reply("Acknowledged");
+            let reply = await twistJuryChannel.send(`Acknowledged twist for ${message.mentions.members.map(a => a.toString())}: ${message.content.replace("!twist", "").replace(message.mentions.members.map(a => a.toString()), "")}`);
+            await reply.pin();
         }
     });
 
