@@ -21,19 +21,33 @@ client.on('ready', () => {
     client.on('message', async message => {
         //TODO:
         let twistJuryChannel = client.channels.array().find(channel => channel.id === process.env.twistjuryChannelID);
-        //!twist calls a new twist
-        if (message.content.startsWith("!twist"))
+        if (message.content.startsWith("!twisthelp")) 
         {
-            if (message.mentions.size != 1) 
+            await twistJuryChannel.send("Welcome to Tornado Twister! Here is what I can do:\n!twist {victim} [{challenge}] \n   to assign a new twist; \n!challenge {participants} [{challenge}] \n    to assign a new challenge; \n!twisthelp \n   to see this message again.");
+        }
+        //!twist calls a new twist
+        else if (message.content.startsWith("!twist"))
+        {
+            let errMessage = "";
+            if (message.mentions.members.size != 1) 
             {
-                await twistJuryChannel.send("Please only assign twists to one person at a time.");
+                errMessage += `Please only assign twists exactly one person at a time. (Your message includes ${message.mentions.members.size} people.)\n`
             } 
-            else 
+            if (!(message.content.includes("[") && message.content.includes("]"))) 
             {
-                let twist = message.content.replace("!twist", "").replace(message.mentions.members.map(a => a.toString()), "");
+                errMessage += "Please include a twist delimited by [...].\n"
+            }
+            if (errMessage == "")
+            {
+                let twist = message.content.substring(message.content.indexOf("[") + 1, message.content.lastIndexOf("]"));
                 let reply = await twistJuryChannel.send(`New twist for ${message.mentions.members.map(a => a.toString())}: ${twist}`);
                 await reply.pin();
             }
+            else 
+            {
+                await twistJuryChannel.send(errMessage.replace(/\n$/, "")) 
+            }
+            err = false;
         }
         else if (message.content.startsWith("!challenge")) 
         {
