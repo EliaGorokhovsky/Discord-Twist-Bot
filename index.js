@@ -22,10 +22,35 @@ client.on('ready', () => {
         //TODO:
         let twistJuryChannel = client.channels.array().find(channel => channel.id === process.env.twistjuryChannelID);
         //!twist calls a new twist
-        if (message.content.includes("!twist"))
+        if (message.content.startsWith("!twist"))
         {
-            let reply = await twistJuryChannel.send(`Acknowledged twist for ${message.mentions.members.map(a => a.toString())}: ${message.content.replace("!twist", "").replace(message.mentions.members.map(a => a.toString()), "")}`);
-            await reply.pin();
+            if (message.mentions.size != 1) 
+            {
+                await twistJuryChannel.send("Please only assign twists to one person at a time.");
+            } 
+            else 
+            {
+                let twist = message.content.replace("!twist", "").replace(message.mentions.members.map(a => a.toString()), "");
+                let reply = await twistJuryChannel.send(`New twist for ${message.mentions.members.map(a => a.toString())}: ${twist}`);
+                await reply.pin();
+            }
+        }
+        else if (message.content.startsWith("!challenge")) 
+        {
+            if (message.mentions.size < 1) 
+            {
+                await twistJuryChannel.send("Please only assign challenges to at least one person.");
+            }
+            else 
+            {
+                let challenge = message.content.replace("!challenge", "");
+                for (i = 0; i < message.mentions.members.size; i++) 
+                {
+                    challenge = challenge.replace(message.mentions.members.map(a => a.toString())[i], "");
+                }
+                let reply = await twistJuryChannel.send(`New challenge for ${message.mentions.members.map(a => a.toString())}: ${challenge}`);
+                await reply.pin();
+            }
         }
     });
 
