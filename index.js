@@ -35,7 +35,7 @@ client.on('ready', () => {
             } 
             if (!(message.content.includes("[") && message.content.includes("]"))) 
             {
-                errMessage += "Please include a twist delimited by [...].\n"
+                errMessage += "Please include a twist delimited by [...].\n";
             }
             if (errMessage == "")
             {
@@ -45,25 +45,29 @@ client.on('ready', () => {
             }
             else 
             {
-                await twistJuryChannel.send(errMessage.replace(/\n$/, "")) 
+                await twistJuryChannel.send(errMessage.replace(/\n$/, ""));
             }
-            err = false;
         }
         else if (message.content.startsWith("!challenge")) 
         {
-            if (message.mentions.size < 1) 
+            let errMessage = "";
+            if (message.mentions.members.size < 1) 
             {
-                await twistJuryChannel.send("Please only assign challenges to at least one person.");
+                errMessage += `Please only assign challenges to at least one person. (Your message includes ${message.mentions.members.size} people.)\n`;
             }
-            else 
+            if (!(message.content.includes("[") && message.content.includes("]"))) 
             {
-                let challenge = message.content.replace("!challenge", "");
-                for (i = 0; i < message.mentions.members.size; i++) 
-                {
-                    challenge = challenge.replace(message.mentions.members.map(a => a.toString())[i], "");
-                }
+                errMessage += "Please include a challenge delimited by [...].\n";
+            }
+            if (errMessage == "")
+            {
+                let challenge = message.content.substring(message.content.indexOf("[") + 1, message.content.lastIndexOf("]"));
                 let reply = await twistJuryChannel.send(`New challenge for ${message.mentions.members.map(a => a.toString())}: ${challenge}`);
                 await reply.pin();
+            }
+            else
+            {
+                await twistJuryChannel.send(errMessage.replace(/\n$/, ""));
             }
         }
     });
