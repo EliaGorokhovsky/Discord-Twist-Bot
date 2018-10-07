@@ -44,8 +44,24 @@ client.on('ready', () => {
             if (errMessage == "")
             {
                 let twist = message.content.substring(message.content.indexOf("[") + 1, message.content.lastIndexOf("]"));
-                let reply = await twistJuryChannel.send(`New twist for ${message.mentions.members.map(a => a.toString())}: ${twist}`);
-                await reply.pin();
+                let replyContent = `New twist for ${message.mentions.members.map(a => a.toString())}: ${twist}`;
+                let reply = await twistJuryChannel.send(replyContent);
+                let reaction = await reply.react(affirmationEmoji);
+                //Updates the message to note who needs to accept
+                let messageUpdater = client.setInterval(async () => {
+                    let votes = reaction.users.array().length;
+                    if (votes < 6) 
+                    {
+                        //TODO: Grammar
+                        reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to approve this twist. ${6 - votes} votes are still needed.`);
+                    }
+                    else
+                    {
+                        reply.edit(`${replyContent} \nAcknowledged!`);
+                        await reply.pin();
+                        client.clearInterval(messageUpdater);
+                    }
+                }, 1500);
             }
             else 
             {
@@ -69,15 +85,17 @@ client.on('ready', () => {
             if (errMessage == "")
             {
                 let challenge = message.content.substring(message.content.indexOf("[") + 1, message.content.lastIndexOf("]"));
-                let replyContent = `New challenge for ${message.mentions.members.map(a => a.toString())}: ${challenge}\n\nReact with ${affirmationEmoji} to confirm your participation.`;
+                let replyContent = `New challenge for ${message.mentions.members.map(a => a.toString())}: ${challenge}`;
                 let reply = await twistJuryChannel.send(replyContent);
                 let reaction = await reply.react(affirmationEmoji);
+                //Updates the message to note who needs to accept
                 let messageUpdater = client.setInterval(async () => {
                     let pendingInvites = message.mentions.users.array().filter(user => !reaction.users.array().some(it => user.id == it.id)).map(user => user.toString());
                     let usersMessage = "";
                     if (pendingInvites.length > 0) 
                     {
-                        reply.edit(`${replyContent} \n${pendingInvites} still need to accept.`);
+                        //TODO: Grammar
+                        reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to confirm your participation. \n${pendingInvites} still need(s) to accept.`);
                     }
                     else
                     {
