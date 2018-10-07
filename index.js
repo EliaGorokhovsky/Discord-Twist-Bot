@@ -6,6 +6,9 @@ const pg = require("pg");
 const client = new Discord.Client();
 let databaseClient;
 
+//Thumbs up
+const affirmationEmoji = "👍"
+
 //If environment variables aren't already available, load them from file
 if (process.env.PORT == undefined) {
     require("dotenv").load()
@@ -16,7 +19,6 @@ if (process.env.PORT == undefined) {
 //Logs the client in
 client.login(`${process.env.DiscordKey}`);
 client.on('ready', () => {
-
     //How the bot responds to a message being sent
     client.on('message', async message => {
         //TODO:
@@ -28,15 +30,17 @@ client.on('ready', () => {
         //!twist calls a new twist
         else if (message.content.startsWith("!twist"))
         {
+            //Semantic errors:
             let errMessage = "";
             if (message.mentions.members.size != 1) 
             {
-                errMessage += `Please only assign twists exactly one person at a time. (Your message includes ${message.mentions.members.size} people.)\n`
+                errMessage += `Please only assign twists exactly one person at a time. (Your message includes ${message.mentions.members.length} people.)\n`
             } 
             if (!(message.content.includes("[") && message.content.includes("]"))) 
             {
                 errMessage += "Please include a twist delimited by [...].\n";
             }
+            //If there are no errors, proceed
             if (errMessage == "")
             {
                 let twist = message.content.substring(message.content.indexOf("[") + 1, message.content.lastIndexOf("]"));
@@ -48,22 +52,40 @@ client.on('ready', () => {
                 await twistJuryChannel.send(errMessage.replace(/\n$/, ""));
             }
         }
+        //!challenge calls a new challenge
         else if (message.content.startsWith("!challenge")) 
         {
+            //Semantic errors:
             let errMessage = "";
-            if (message.mentions.members.size < 1) 
+            if (message.mentions.members.length < 1) 
             {
-                errMessage += `Please only assign challenges to at least one person. (Your message includes ${message.mentions.members.size} people.)\n`;
+                errMessage += `Please only assign challenges to at least one person. (Your message includes ${message.mentions.members.length} people.)\n`;
             }
             if (!(message.content.includes("[") && message.content.includes("]"))) 
             {
                 errMessage += "Please include a challenge delimited by [...].\n";
             }
+            //If there are no errors, proceed
             if (errMessage == "")
             {
                 let challenge = message.content.substring(message.content.indexOf("[") + 1, message.content.lastIndexOf("]"));
-                let reply = await twistJuryChannel.send(`New challenge for ${message.mentions.members.map(a => a.toString())}: ${challenge}`);
-                await reply.pin();
+                let replyContent = `New challenge for ${message.mentions.members.map(a => a.toString())}: ${challenge}\n\nReact with ${affirmationEmoji} to confirm your participation.`;
+                let reply = await twistJuryChannel.send(replyContent);
+                let reaction = await reply.react(affirmationEmoji);
+                let messageUpdater = client.setInterval(async () => {
+                    let pendingInvites = message.mentions.users.array().filter(user => !reaction.users.array().some(it => user.id == it.id)).map(user => user.toString());
+                    let usersMessage = "";
+                    if (pendingInvites.length > 0) 
+                    {
+                        reply.edit(`${replyContent} \n${pendingInvites} still need to accept.`);
+                    }
+                    else
+                    {
+                        reply.edit(`${replyContent} \nEveryone has accepted!`);
+                        await reply.pin();
+                        client.clearInterval(messageUpdater);
+                    }
+                }, 1500);
             }
             else
             {
