@@ -52,8 +52,14 @@ client.on('ready', () => {
                     let votes = reaction.users.array().length;
                     if (votes < 6) 
                     {
-                        //TODO: Grammar
-                        reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to approve this twist. ${6 - votes} votes are still needed.`);
+                        if (6 - votes == 1)
+                        {
+                            reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to approve this twist. 1 vote is still needed.`);
+                        }
+                        else 
+                        {
+                            reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to approve this twist. ${6 - votes} votes are still needed.`);
+                        }
                     }
                     else
                     {
@@ -73,9 +79,9 @@ client.on('ready', () => {
         {
             //Semantic errors:
             let errMessage = "";
-            if (message.mentions.members.length < 1) 
+            if (message.mentions.members.array().length < 1) 
             {
-                errMessage += `Please only assign challenges to at least one person. (Your message includes ${message.mentions.members.length} people.)\n`;
+                errMessage += `Please only assign challenges to at least one person. (Your message includes ${message.mentions.members.array().length} people.)\n`;
             }
             if (!(message.content.includes("[") && message.content.includes("]"))) 
             {
@@ -95,7 +101,14 @@ client.on('ready', () => {
                     if (pendingInvites.length > 0) 
                     {
                         //TODO: Grammar
-                        reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to confirm your participation. \n${pendingInvites} still need(s) to accept.`);
+                        if (pendingInvites.length == 1)
+                        {
+                            reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to confirm your participation. \n${pendingInvites} still needs to accept.`);
+                        }
+                        else
+                        {
+                            reply.edit(`${replyContent}\n\nReact with ${affirmationEmoji} to confirm your participation. \n${pendingInvites.slice(0, pendingInvites.length - 1)}, and ${pendingInvites[pendingInvites.length - 1]} still need to accept.`);
+                        }
                     }
                     else
                     {
